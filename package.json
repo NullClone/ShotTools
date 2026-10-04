@@ -1,0 +1,28 @@
+{
+  "name": "com.null.shot-tools",
+  "version": "0.1.0",
+  "displayName": "Shot Tools",
+  "description": "Tools for building camera shots on top of Cinemachine. The motion of a shot is stored in the Spline as marks.",
+  "unity": "6000.3",
+  "author": {
+    "name": "Null"
+  },
+  "keywords": [
+    "camera",
+    "cinemachine",
+    "spline",
+    "timeline"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/NullClone/ShotTools.git"
+  },
+  "license": "MIT",
+  "licensesUrl": "https://github.com/NullClone/ShotTools/blob/main/LICENSE.md",
+  "changelogUrl": "https://github.com/NullClone/ShotTools/blob/main/CHANGELOG.md",
+  "dependencies": {
+    "com.unity.cinemachine": "3.1.7",
+    "com.unity.splines": "2.9.0",
+    "com.unity.timeline": "1.8.12"
+  }
+}

@@ -1,0 +1,21 @@
+{
+    "name": "ShotTools.Editor",
+    "rootNamespace": "",
+    "references": [
+        "ShotTools.Runtime",
+        "Unity.Cinemachine",
+        "Unity.Mathematics",
+        "Unity.Splines"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

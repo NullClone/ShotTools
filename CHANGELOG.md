@@ -1,0 +1,14 @@
+# Change Log
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](http://keepachangelog.com/)
+and this project adheres to [Semantic Versioning](http://semver.org/).
+
+
+## [0.1.0] - 2026-10-04
+
+### Added
+- Added Shot Marks: the state of the camera at a time in the shot (place on the rail, look point, field of view, dutch), stored in the Spline
+- Added Cinemachine Shot Move: advances the time of the shot and applies the marks to the camera
+- Added the Inspector and Scene view handles for editing marks
+- Added Cinemachine Follow Focus (URP)

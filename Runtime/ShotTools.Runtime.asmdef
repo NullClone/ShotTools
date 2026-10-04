@@ -1,0 +1,27 @@
+{
+    "name": "ShotTools.Runtime",
+    "rootNamespace": "",
+    "references": [
+        "Unity.Cinemachine",
+        "Unity.Mathematics",
+        "Unity.Splines",
+        "Unity.Timeline",
+        "Unity.RenderPipelines.Core.Runtime",
+        "Unity.RenderPipelines.Universal.Runtime"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [
+        {
+            "name": "com.unity.render-pipelines.universal",
+            "expression": "",
+            "define": "SHOT_TOOLS_URP"
+        }
+    ],
+    "noEngineReferences": false
+}
