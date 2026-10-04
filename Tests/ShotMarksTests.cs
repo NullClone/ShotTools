@@ -9,7 +9,7 @@ namespace ShotTools.Tests
     //
     // マークの読み書きと、マークの間のつなぎ方を確かめる。
     //
-    internal sealed class ShotMarksTests
+    public sealed class ShotMarksTests
     {
         // Fields
 
