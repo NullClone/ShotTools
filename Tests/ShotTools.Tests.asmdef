@@ -4,6 +4,8 @@
     "references": [
         "ShotTools.Runtime",
         "ShotTools.Editor",
+        "Unity.Cinemachine",
+        "Unity.Timeline",
         "Unity.Mathematics",
         "Unity.Splines",
         "UnityEngine.TestRunner",

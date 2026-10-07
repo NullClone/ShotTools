@@ -38,10 +38,11 @@ Shot Tools は、Cinemachine の上でカメラのカットを作るための道
 - **Timeline のクリップで動く**
   - カットは、Cinemachine Track のクリップの頭から終わりまでで動きます
   - クリップを動かしたり長さを変えたりすると、カットの速さもそれに合います。キーフレームを直す必要はありません
-  - カメラが映った瞬間から動かすことも、スクリプトから時刻を入れることもできます
+  - スクリプトから時刻を入れることもできます
 - **Scene ビューで直す**
   - マークをレールに沿ってつかんで動かし、見る点は自由に動かせます
 - **遅れも揺れもない**
+  - カメラの状態は、時刻と Spline だけで決まります。前のフレームの状態を持ちません
   - 相手を追いかけるのではなく、見る点にカメラを直接向けるので、止めて動かしたときも再生したときも同じ絵になります
 
 ## インストール
@@ -57,8 +58,8 @@ https://github.com/NullClone/ShotTools.git
 ## はじめに
 
 1. レールにする `Spline` を作ります（`GameObject > Spline`）。
-2. `Cinemachine Camera` を作り、`Position Control` を `Spline Dolly` にして、Spline を指定します。
-3. カメラに `Cinemachine Shot Move` を付けます（`Add Extension`、または `Add Component > Cinemachine > Procedural > Extensions`）。
+2. `Cinemachine Camera` を作ります。`Position Control` と `Rotation Control` は `None` のままにします。
+3. カメラに `Cinemachine Spline Shot` を付け（`Add Extension`、または `Add Component > Cinemachine > Procedural > Extensions`）、Spline を指定します。
 4. Timeline の `Cinemachine Track` のクリップに、そのカメラを入れます。
 5. スクリプトから `ShotMarks` で、Spline にマークを書き込みます（[マーク](#マーク)を参照）。マークを足すボタンはまだありません。マークは、スクリプトやツールが書き込むものとして作っています。
 6. カメラか Spline を選び、Scene ビューでマークを直します。水色の四角はレールに沿って動き、橙の丸が見る点です。
@@ -67,17 +68,19 @@ https://github.com/NullClone/ShotTools.git
 
 ## コンポーネント
 
-### Cinemachine Shot Move
+### Cinemachine Spline Shot
 
-`Cinemachine Camera` の Extension です。カットの中の時刻（0 = 頭、1 = 終わり）を進め、同じカメラの `Spline Dolly` が使う Spline からマークを読んで、カメラに反映します。場所は Spline Dolly の `Camera Position` に、見る点は向きに、画角と傾きは Lens に入ります。カメラの Lens の設定そのものは書き換えません。
+`Cinemachine Camera` の Extension です。カットの中の時刻（0 = 頭、1 = 終わり）を決め、Spline からマークを読んで、カメラに反映します。レールの上の場所は位置に、見る点は向きに、画角と傾きは Lens に入ります。カメラの Lens の設定そのものは書き換えません。
+
+Spline Shot は Timeline への参照を持ちません。このカメラをクリップに入れている Timeline を、自動で見つけます（Timeline を入れ子にしていても同じです）。1 台のカメラは、1 つの Timeline のクリップだけで使ってください。
+
+カメラに `Spline Dolly` は要りません。Spline Shot が自分でカメラを Spline の上に置くので、絵は時刻と Spline だけで決まり、止めて動かしたときも再生したときも同じになります。
 
 | 項目 | 内容 |
 | --- | --- |
-| Time Source | `Timeline Clip`: Cinemachine Track の、このカメラのクリップの頭から終わりまで。`On Live`: このカメラが映った瞬間から。`Manual`: `Manual Time` の値。 |
-| Director | `Timeline Clip` のときの Timeline。空ならシーンから探します。 |
-| Duration | `On Live` のときの、カットの長さ（秒）。 |
-| Wrap Mode | `On Live` のとき、カットが終わったあとの動き（`Once`・`Loop`・`Ping Pong`）。 |
-| Manual Time | `Manual` のときの時刻。ほかの基準が使えないときの、確認用の時刻にもなります。 |
+| Spline | レールとマークを持つ Spline。 |
+| Time Source | `Timeline Clip`: Cinemachine Track の、このカメラのクリップの頭から終わりまで。`Manual`: `Manual Time` の値。 |
+| Manual Time | `Manual` のときの時刻。このカメラがどのクリップにも入っていないときにも使います。 |
 
 Scene ビューでは、カメラか Spline を選ぶと次の印が出ます。
 

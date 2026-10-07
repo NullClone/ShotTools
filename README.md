@@ -38,10 +38,11 @@ One camera is one shot. The whole motion of a shot — where the camera is on th
 - **Driven by the Timeline clip**
   - A shot runs from the start to the end of its clip on a Cinemachine Track
   - Moving or resizing the clip retimes the shot; no keyframes to fix
-  - It can also run from the moment the camera goes live, or from a value you set from a script
+  - It can also run from a value you set from a script
 - **Adjusting in the Scene view**
   - Drag a mark along the rail, or move its look point freely
 - **No lag, no shake**
+  - The camera is a function of the time and the Spline only. It keeps no state from the previous frame
   - The camera is aimed directly at the look point instead of chasing a target, so scrubbing and playback give the same picture
 
 ## Installation
@@ -57,8 +58,8 @@ https://github.com/NullClone/ShotTools.git
 ## Getting Started
 
 1. Create a `Spline` for the rail (`GameObject > Spline`).
-2. Create a `Cinemachine Camera` and set its `Position Control` to `Spline Dolly`. Assign the Spline to it.
-3. Add `Cinemachine Shot Move` to the camera (`Add Extension` or `Add Component > Cinemachine > Procedural > Extensions`).
+2. Create a `Cinemachine Camera`. Leave its `Position Control` and `Rotation Control` set to `None`.
+3. Add `Cinemachine Spline Shot` to the camera (`Add Extension` or `Add Component > Cinemachine > Procedural > Extensions`) and assign the Spline to it.
 4. Put the camera in a clip on a `Cinemachine Track` in your Timeline.
 5. Write the marks to the Spline from a script with `ShotMarks` (see [Marks](#marks)). There is no button for adding marks yet; they are meant to be written by a script or a tool.
 6. Select the camera or the Spline, then adjust the marks in the Scene view: the blue square moves along the rail, the orange sphere is the look point.
@@ -67,17 +68,19 @@ A shot that does not move is a Spline with a single knot.
 
 ## Components
 
-### Cinemachine Shot Move
+### Cinemachine Spline Shot
 
-An extension for `Cinemachine Camera`. It advances the time of the shot (0 = start, 1 = end), reads the marks from the Spline used by the `Spline Dolly` on the same camera, and applies them: the place to the `Camera Position` of the Spline Dolly, the look point to the rotation, and the field of view and dutch to the lens. The lens settings of the camera are not rewritten.
+An extension for `Cinemachine Camera`. It decides the time of the shot (0 = start, 1 = end), reads the marks from the Spline, and applies them: the place on the rail to the position, the look point to the rotation, and the field of view and dutch to the lens. The lens settings of the camera are not rewritten.
+
+Spline Shot keeps no reference to a Timeline. The Timeline that has the camera in a clip is found automatically, also when Timelines are nested. Use a camera in the clips of one Timeline only.
+
+The camera needs no `Spline Dolly`. Spline Shot places the camera on the Spline itself, so the picture depends only on the time and the Spline, and is the same when scrubbing and when playing.
 
 | Property | Description |
 | --- | --- |
-| Time Source | `Timeline Clip`: from the start to the end of this camera's clip on a Cinemachine Track. `On Live`: from the moment this camera goes live. `Manual`: the value of `Manual Time`. |
-| Director | The Timeline used by `Timeline Clip`. If empty, one is searched for in the scene. |
-| Duration | Length of the shot in seconds, used by `On Live`. |
-| Wrap Mode | What happens after the shot ends, used by `On Live`: `Once`, `Loop`, or `Ping Pong`. |
-| Manual Time | Time of the shot used by `Manual`. Also used as the preview time when the other sources are not available. |
+| Spline | The Spline that holds the rail and the marks of the shot. |
+| Time Source | `Timeline Clip`: from the start to the end of this camera's clip on a Cinemachine Track. `Manual`: the value of `Manual Time`. |
+| Manual Time | Time of the shot used by `Manual`. Also used when this camera is not in any clip. |
 
 In the Scene view, selecting the camera or the Spline shows:
 

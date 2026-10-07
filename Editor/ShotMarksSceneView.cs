@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using Unity.Cinemachine;
 using Unity.Mathematics;
 using UnityEditor;
 using UnityEditorInternal;
@@ -10,7 +9,7 @@ namespace ShotTools.Editor
 {
     //
     // Spline に埋め込んだマークを、Scene ビューで見て、直すための表示。
-    // Cinemachine Shot Move の付いたカメラか、マークのある Spline を選ぶと出る。
+    // Cinemachine Spline Shot の付いたカメラか、マークのある Spline を選ぶと出る。
     //
     // レールの上の印（その時刻にカメラがいる場所）と、見る点、その 2 つを結ぶ線を描く。
     // 印はレールに沿って、見る点は自由に動かせる。
@@ -57,11 +56,10 @@ namespace ShotTools.Editor
 
             if (target == null) return false;
 
-            if (target.TryGetComponent<CinemachineShotMove>(out var move) &&
-                target.TryGetComponent<CinemachineSplineDolly>(out var dolly))
+            if (target.TryGetComponent<CinemachineSplineShot>(out var splineShot))
             {
-                container = dolly.Spline;
-                time = move.NormalizedTime;
+                container = splineShot.Spline;
+                time = splineShot.NormalizedTime;
             }
             else
             {

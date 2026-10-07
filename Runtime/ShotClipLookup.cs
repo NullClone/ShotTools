@@ -8,26 +8,24 @@ namespace ShotTools
 {
     //
     // カメラが、Timeline の Cinemachine Track のどのクリップ（カット）で使われているかを調べる。
-    // CinemachineShotMove が、クリップの頭から終わりまでを 0〜1 として読むために使う。
+    // CinemachineSplineShot が、クリップの頭から終わりまでを 0〜1 として読むために使う。
     //
-    // Timeline を毎フレームたどると重いので、クリップの位置を覚えておく。
-    // 再生中は Timeline が変わらないものとして、覚えたものを使い続ける。
-    // エディタで直している間は、短い間隔で調べ直す。
+    // Cinemachine Track はクリップの中の時刻をカメラに知らせないので、カメラの側から Timeline を読む。
     //
-    public static class ShotClipLookup
+    // 再生中は、Timeline を毎フレームたどらずに、クリップの位置を覚えておく。
+    // 覚えたものは、Timeline が再生に使っているグラフが同じ間だけ使う。
+    // Timeline 自身も、グラフを作り直すまではクリップの変更を見ないので、これで食い違わない。
+    // 再生していないとき（エディタで直している間）は覚えずに、聞かれるたびに読む。
+    //
+    internal static class ShotClipLookup
     {
         // Fields
 
-        // エディタで Timeline を直している間に、調べ直す間隔（秒）
-        private const float EditRefreshInterval = 0.25f;
-
         private static readonly Dictionary<PlayableDirector, Entry> _cache = new();
+        private static readonly List<PlayableDirector> _destroyed = new();
 
 
         // Methods
-
-        // 覚えているクリップの位置を捨てる。Timeline をスクリプトから書き換えたあとに呼ぶ
-        public static void Invalidate() => _cache.Clear();
 
         // director の今の時刻での、vcam のカットの中の時刻（0 = クリップの頭、1 = 終わり）。
         // クリップの外なら、一番近いクリップの端。vcam がどのクリップにも使われていなければ false
@@ -36,50 +34,98 @@ namespace ShotTools
             CinemachineVirtualCameraBase vcam,
             out float time)
         {
+            return TryGetNormalizedTime(director, vcam, out time, out _);
+        }
+
+        // vcam をクリップに持っている Timeline を、シーンから探す。なければ null。
+        // いくつもあるときは、今の時刻が vcam のクリップにいちばん近いもの
+        public static PlayableDirector FindDirector(CinemachineVirtualCameraBase vcam)
+        {
+            var found = default(PlayableDirector);
+            var nearest = double.MaxValue;
+
+            // 並べ方を選ぶ引数は Unity 6000.5 で廃止予定になり、引数なしの形は 6000.3 にはない
+#if UNITY_6000_5_OR_NEWER
+            var directors = Object.FindObjectsByType<PlayableDirector>();
+#else
+            var directors = Object.FindObjectsByType<PlayableDirector>(FindObjectsSortMode.None);
+#endif
+
+            foreach (var director in directors)
+            {
+                if (!TryGetNormalizedTime(director, vcam, out _, out var distance) || distance >= nearest) continue;
+
+                found = director;
+                nearest = distance;
+            }
+
+            return found;
+        }
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void Reset() => _cache.Clear();
+
+        // distance は、今の時刻から vcam のクリップまでの秒数（クリップの中なら 0）
+        private static bool TryGetNormalizedTime(
+            PlayableDirector director,
+            CinemachineVirtualCameraBase vcam,
+            out float time,
+            out double distance)
+        {
             time = 0f;
+            distance = double.MaxValue;
 
             if (director == null || vcam == null) return false;
 
             var entry = GetEntry(director);
 
             if (entry == null) return false;
-            if (!entry.Clips.TryGetValue(vcam, out var clips)) return false;
 
             var now = director.time;
-            var nearest = double.MaxValue;
 
-            foreach (var (start, duration) in clips)
+            foreach (var clip in entry.Clips)
             {
-                var end = start + duration;
-                var distance = now < start ? start - now : now > end ? now - end : 0d;
+                if (!ReferenceEquals(clip.Camera, vcam)) continue;
 
-                if (distance >= nearest) continue;
+                var end = clip.Start + clip.Duration;
+                var away = now < clip.Start ? clip.Start - now : now > end ? now - end : 0d;
 
-                nearest = distance;
-                time = duration > 0d ? Mathf.Clamp01((float)((now - start) / duration)) : 0f;
+                if (away >= distance) continue;
+
+                distance = away;
+                time = clip.Duration > 0d ? Mathf.Clamp01((float)((now - clip.Start) / clip.Duration)) : 0f;
             }
 
-            return nearest < double.MaxValue;
+            return distance < double.MaxValue;
         }
 
         private static Entry GetEntry(PlayableDirector director)
         {
-            var asset = director.playableAsset;
+            if (director.playableAsset is not TimelineAsset timeline) return null;
 
-            if (asset is not TimelineAsset timeline) return null;
+            var graph = director.playableGraph;
+            var isPlaying = Application.isPlaying && graph.IsValid() && graph.GetRootPlayableCount() > 0;
+            var root = isPlaying ? graph.GetRootPlayable(0).GetHandle() : default;
 
-            var now = Time.realtimeSinceStartup;
-
-            if (_cache.TryGetValue(director, out var entry) && entry.Asset == asset)
+            if (_cache.TryGetValue(director, out var entry))
             {
-                if (Application.isPlaying || now - entry.BuiltAt < EditRefreshInterval) return entry;
+                if (isPlaying && entry.Timeline == timeline && entry.Root == root) return entry;
+            }
+            else
+            {
+                RemoveDestroyed();
+
+                entry = new Entry();
+                _cache[director] = entry;
             }
 
-            entry = new Entry(asset, now);
+            entry.Timeline = timeline;
+            entry.Root = root;
+            entry.Clips.Clear();
 
             foreach (var track in timeline.GetOutputTracks())
             {
-                if (track is not CinemachineTrack || track.muted) continue;
+                if (track is not CinemachineTrack || track.mutedInHierarchy) continue;
 
                 foreach (var clip in track.GetClips())
                 {
@@ -89,33 +135,50 @@ namespace ShotTools
 
                     if (vcam == null) continue;
 
-                    if (!entry.Clips.TryGetValue(vcam, out var clips))
-                    {
-                        clips = new List<(double Start, double Duration)>();
-                        entry.Clips[vcam] = clips;
-                    }
-
-                    clips.Add((clip.start, clip.duration));
+                    entry.Clips.Add(new Clip { Camera = vcam, Start = clip.start, Duration = clip.duration });
                 }
             }
-
-            _cache[director] = entry;
 
             return entry;
         }
 
+        // シーンを閉じたあとに残った Timeline を、覚えから外す
+        private static void RemoveDestroyed()
+        {
+            _destroyed.Clear();
+
+            foreach (var director in _cache.Keys)
+            {
+                if (director == null)
+                {
+                    _destroyed.Add(director);
+                }
+            }
+
+            foreach (var director in _destroyed)
+            {
+                _cache.Remove(director);
+            }
+
+            _destroyed.Clear();
+        }
+
+
+        private struct Clip
+        {
+            public CinemachineVirtualCameraBase Camera;
+            public double Start;
+            public double Duration;
+        }
 
         private sealed class Entry
         {
-            public readonly PlayableAsset Asset;
-            public readonly float BuiltAt;
-            public readonly Dictionary<CinemachineVirtualCameraBase, List<(double Start, double Duration)>> Clips = new();
+            public TimelineAsset Timeline;
 
-            public Entry(PlayableAsset asset, float builtAt)
-            {
-                Asset = asset;
-                BuiltAt = builtAt;
-            }
+            // 覚えたときの、グラフの根。グラフが作り直されると変わる
+            public PlayableHandle Root;
+
+            public readonly List<Clip> Clips = new();
         }
     }
 }
