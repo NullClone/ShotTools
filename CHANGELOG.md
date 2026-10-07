@@ -5,6 +5,13 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 
+## [Unreleased]
+
+### Removed
+- Removed Cinemachine Follow Focus and `IShotFocusSubject`. The package no longer references the Universal Render Pipeline
+- Removed the mark list and the add, delete, and smooth buttons from the Inspector of Cinemachine Shot Move. Marks are written from a script with `ShotMarks` and adjusted in the Scene view
+
+
 ## [0.1.0] - 2026-10-04
 
 ### Added

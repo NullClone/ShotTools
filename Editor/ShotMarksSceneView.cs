@@ -9,7 +9,7 @@ using UnityEngine.Splines;
 namespace ShotTools.Editor
 {
     //
-    // Spline に埋め込んだマークを、Scene ビューで直すための表示。
+    // Spline に埋め込んだマークを、Scene ビューで見て、直すための表示。
     // Cinemachine Shot Move の付いたカメラか、マークのある Spline を選ぶと出る。
     //
     // レールの上の印（その時刻にカメラがいる場所）と、見る点、その 2 つを結ぶ線を描く。
@@ -38,7 +38,7 @@ namespace ShotTools.Editor
 
         // Properties
 
-        // 選んでいるマークの番号（Inspector と共通）。選んでいなければ負
+        // 選んでいるマークの番号。選んでいなければ負
         public static int Selected { get; set; } = -1;
 
 

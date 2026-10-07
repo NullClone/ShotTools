@@ -5,9 +5,7 @@
         "Unity.Cinemachine",
         "Unity.Mathematics",
         "Unity.Splines",
-        "Unity.Timeline",
-        "Unity.RenderPipelines.Core.Runtime",
-        "Unity.RenderPipelines.Universal.Runtime"
+        "Unity.Timeline"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
@@ -16,12 +14,6 @@
     "precompiledReferences": [],
     "autoReferenced": true,
     "defineConstraints": [],
-    "versionDefines": [
-        {
-            "name": "com.unity.render-pipelines.universal",
-            "expression": "",
-            "define": "SHOT_TOOLS_URP"
-        }
-    ],
+    "versionDefines": [],
     "noEngineReferences": false
 }

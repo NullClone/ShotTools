@@ -41,11 +41,8 @@ Shot Tools は、Cinemachine の上でカメラのカットを作るための道
   - カメラが映った瞬間から動かすことも、スクリプトから時刻を入れることもできます
 - **Scene ビューで直す**
   - マークをレールに沿ってつかんで動かし、見る点は自由に動かせます
-  - Inspector から、マークを足す・消す・なめらかにつなぐ、ができます
 - **遅れも揺れもない**
   - 相手を追いかけるのではなく、見る点にカメラを直接向けるので、止めて動かしたときも再生したときも同じ絵になります
-- **フォローフォーカス（URP）**
-  - 相手にピントを合わせ続け、サイズに合わせてボケの量を変えます
 
 ## インストール
 
@@ -63,9 +60,8 @@ https://github.com/NullClone/ShotTools.git
 2. `Cinemachine Camera` を作り、`Position Control` を `Spline Dolly` にして、Spline を指定します。
 3. カメラに `Cinemachine Shot Move` を付けます（`Add Extension`、または `Add Component > Cinemachine > Procedural > Extensions`）。
 4. Timeline の `Cinemachine Track` のクリップに、そのカメラを入れます。
-5. Timeline をクリップの頭に合わせ、Shot Move の Inspector で `Add Mark at Current Time` を押します。クリップの終わりでも同じことをします。
-6. マークを選び、Scene ビューで動かします。水色の四角はレールに沿って動き、橙の丸が見る点です。
-7. `Smooth All` を押すと、マークの間がなめらかにつながります。
+5. スクリプトから `ShotMarks` で、Spline にマークを書き込みます（[マーク](#マーク)を参照）。マークを足すボタンはまだありません。マークは、スクリプトやツールが書き込むものとして作っています。
+6. カメラか Spline を選び、Scene ビューでマークを直します。水色の四角はレールに沿って動き、橙の丸が見る点です。
 
 動かないカットは、点が 1 つだけの Spline にします。
 
@@ -82,8 +78,6 @@ https://github.com/NullClone/ShotTools.git
 | Duration | `On Live` のときの、カットの長さ（秒）。 |
 | Wrap Mode | `On Live` のとき、カットが終わったあとの動き（`Once`・`Loop`・`Ping Pong`）。 |
 | Manual Time | `Manual` のときの時刻。ほかの基準が使えないときの、確認用の時刻にもなります。 |
-
-Inspector には、マークの一覧（時刻・場所・画角・傾き・見る点）と、足す・消す・なめらかにつなぐボタンが出ます。
 
 Scene ビューでは、カメラか Spline を選ぶと次の印が出ます。
 
@@ -104,7 +98,7 @@ Scene ビューでは、カメラか Spline を選ぶと次の印が出ます。
 | `Shot Look Tangent` | xyz = 見る点の接線、w = 場所の接線 |
 | `Shot Lens` | x = 縦の画角（度。0 以下ならカメラの Lens のまま）、y = 傾き（度）、z・w = それぞれの接線 |
 
-3 つのデータは、同じ時刻でそろっている必要があります。マークは Shot Move の Inspector か Scene ビューから直してください。Spline の Inspector で埋め込みデータを別々に直すと、組がずれます。
+3 つのデータは、同じ時刻でそろっている必要があります。マークは Scene ビューか `ShotMarks` から直してください。Spline の Inspector で埋め込みデータを別々に直すと、組がずれます。
 
 スクリプトからは `ShotMarks` を使います。
 
@@ -119,21 +113,12 @@ ShotMarks.Smooth(marks);
 ShotMarks.Write(splineContainer.Spline, marks);
 ```
 
-### Cinemachine Follow Focus
-
-`Cinemachine Camera` の Extension です（URP のみ）。URP の被写界深度（Bokeh）を使って、相手にピントを合わせ続け、寄るほど絞りを開きます。自分で作った全体の Volume を動かすので、プロジェクトの Volume やアセットは書き換えません。
-
-ピントの相手は、同じ GameObject に付いた、`IShotFocusSubject` を実装した部品が教えます。この部品はまだパッケージに入っていないので、自分で書く必要があります。
-
-出力のカメラで `Post Processing` をオンにしてください。
-
 ## 動作環境
 
 - Unity 6000.3 以降
 - Cinemachine 3.1.7 以降
 - Splines 2.9.0 以降
 - Timeline 1.8.12 以降
-- Universal Render Pipeline（任意。フォローフォーカスに必要）
 
 ## ライセンス
 
