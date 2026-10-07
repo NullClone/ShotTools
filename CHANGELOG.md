@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [0.2.1] - 2026-10-07
 
+### Changed
+- The Inspector of Cinemachine Spline Shot shows Manual Time only when Time Source is Manual
+
 ### Fixed
 - Fixed the time of the shot being wrong when a camera is in the clips of two Timelines. Spline Shot now uses the Timeline that is showing the camera
 

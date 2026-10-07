@@ -80,7 +80,7 @@ The camera needs no `Spline Dolly`. Spline Shot places the camera on the Spline 
 | --- | --- |
 | Spline | The Spline that holds the rail and the marks of the shot. |
 | Time Source | `Timeline Clip`: from the start to the end of this camera's clip on a Cinemachine Track. `Manual`: the value of `Manual Time`. |
-| Manual Time | Time of the shot used by `Manual`. Also used when this camera is not in any clip. |
+| Manual Time | Time of the shot used by `Manual`. Shown only when `Time Source` is `Manual`. |
 
 In the Scene view, selecting the camera or the Spline shows:
 

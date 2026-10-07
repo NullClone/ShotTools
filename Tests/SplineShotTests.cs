@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using NUnit.Framework;
 using Unity.Cinemachine;
@@ -6,6 +7,7 @@ using UnityEngine;
 using UnityEngine.Playables;
 using UnityEngine.Splines;
 using UnityEngine.Timeline;
+using Object = UnityEngine.Object;
 
 namespace ShotTools.Tests
 {
@@ -326,7 +328,7 @@ namespace ShotTools.Tests
             var director = gameObject.AddComponent<PlayableDirector>();
             var shot = (CinemachineShot)clip.asset;
 
-            shot.VirtualCamera.exposedName = System.Guid.NewGuid().ToString();
+            shot.VirtualCamera.exposedName = Guid.NewGuid().ToString();
             director.playableAsset = timeline;
             director.SetReferenceValue(shot.VirtualCamera.exposedName, vcam);
 
@@ -366,7 +368,7 @@ namespace ShotTools.Tests
 
                 clip.start = start;
                 clip.duration = duration;
-                control.sourceGameObject.exposedName = System.Guid.NewGuid().ToString();
+                control.sourceGameObject.exposedName = Guid.NewGuid().ToString();
                 master.SetReferenceValue(control.sourceGameObject.exposedName, sub.gameObject);
             }
         }

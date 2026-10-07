@@ -80,7 +80,7 @@ Spline Shot は Timeline への参照を持ちません。このカメラをク�
 | --- | --- |
 | Spline | レールとマークを持つ Spline。 |
 | Time Source | `Timeline Clip`: Cinemachine Track の、このカメラのクリップの頭から終わりまで。`Manual`: `Manual Time` の値。 |
-| Manual Time | `Manual` のときの時刻。このカメラがどのクリップにも入っていないときにも使います。 |
+| Manual Time | `Manual` のときの時刻。`Time Source` が `Manual` のときだけ表示されます。 |
 
 Scene ビューでは、カメラか Spline を選ぶと次の印が出ます。
 
