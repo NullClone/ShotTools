@@ -37,7 +37,7 @@ namespace ShotTools
         private const float MinUpCrossSqr = 1e-8f;
 
         // 映っていないカメラが、自分をクリップに入れている Timeline を探し直す間隔（秒）。
-        // 映っているカメラは、見つかるまで毎フレーム探す
+        // 映っているカメラは、自分を映している Timeline が見つかるまで毎フレーム探す
         private const float SearchInterval = 0.5f;
 
 
@@ -151,11 +151,21 @@ namespace ShotTools
         {
             if (_timeSource != ShotTimeSource.TimelineClip) return _manualTime;
 
-            if (ShotClipLookup.TryGetNormalizedTime(_director, vcam, out var time)) return time;
+            var found = ShotClipLookup.TryGetNormalizedTime(_director, vcam, out var time, out var isShowing);
 
+            if (isShowing) return time;
+
+            // 覚えている Timeline が今このカメラを映していないのに、カメラが映っているなら、
+            // 別の Timeline が映しているかもしれないので探し直す。
+            // 映っていないカメラは、Timeline をまだ見つけていないときだけ、間を空けて探す
             var now = Time.realtimeSinceStartup;
 
-            if (now - _searchedAt < SearchInterval && !CinemachineCore.IsLive(vcam)) return _manualTime;
+            if (!CinemachineCore.IsLive(vcam))
+            {
+                if (found) return time;
+
+                if (now - _searchedAt < SearchInterval) return _manualTime;
+            }
 
             _searchedAt = now;
             _director = ShotClipLookup.FindDirector(vcam);

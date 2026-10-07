@@ -72,7 +72,7 @@ A shot that does not move is a Spline with a single knot.
 
 An extension for `Cinemachine Camera`. It decides the time of the shot (0 = start, 1 = end), reads the marks from the Spline, and applies them: the place on the rail to the position, the look point to the rotation, and the field of view and dutch to the lens. The lens settings of the camera are not rewritten.
 
-Spline Shot keeps no reference to a Timeline. The Timeline that has the camera in a clip is found automatically, also when Timelines are nested. Use a camera in the clips of one Timeline only.
+Spline Shot keeps no reference to a Timeline. The Timeline that has the camera in a clip is found automatically, also when Timelines are nested. When a camera is in the clips of two Timelines, the one that is showing the camera is used. Do not show one camera from two Timelines at the same moment.
 
 The camera needs no `Spline Dolly`. Spline Shot places the camera on the Spline itself, so the picture depends only on the time and the Spline, and is the same when scrubbing and when playing.
 

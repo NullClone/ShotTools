@@ -110,6 +110,83 @@ namespace ShotTools.Tests
             Assert.AreEqual(0.75f, splineShot.NormalizedTime, Tolerance);
         }
 
+        // 親の Timeline が Control Track で子の Timeline を動かす形（曲ごとの Timeline をまとめる形）。
+        // カメラは子の Timeline のクリップにあるので、子の中の時刻で決まる
+        [Test]
+        public void Update_UnderMasterTimeline_UsesTheTimeOfTheSubTimeline()
+        {
+            var vcam = CreateCamera(out var splineShot);
+            var director = CreateDirector(vcam, 2d, 4d, out _);
+            var master = CreateMaster(director, 10d, 8d);
+
+            master.time = 13d;
+            master.Evaluate();
+            vcam.UpdateCameraState(Vector3.up, -1f);
+
+            Assert.AreEqual(3d, director.time, Tolerance);
+            Assert.AreEqual(0.25f, splineShot.NormalizedTime, Tolerance);
+
+            master.time = 15d;
+            master.Evaluate();
+            vcam.UpdateCameraState(Vector3.up, -1f);
+
+            Assert.AreEqual(0.75f, splineShot.NormalizedTime, Tolerance);
+        }
+
+        // 2 曲がそれぞれの Timeline とカメラを持ち、親の Timeline に続けて並ぶ形
+        [Test]
+        public void Update_WithTwoSongsUnderMasterTimeline_EachCameraUsesItsOwnSong()
+        {
+            var first = CreateCamera(out var firstShot);
+            var second = CreateCamera(out var secondShot);
+            var firstDirector = CreateDirector(first, 0d, 4d, out _);
+            var secondDirector = CreateDirector(second, 0d, 4d, out _);
+            var master = CreateMaster(firstDirector, 0d, 4d);
+
+            AddControlClip(master, secondDirector, 4d, 4d);
+
+            master.time = 1d;
+            master.Evaluate();
+            first.UpdateCameraState(Vector3.up, -1f);
+
+            Assert.AreEqual(0.25f, firstShot.NormalizedTime, Tolerance);
+
+            master.time = 7d;
+            master.Evaluate();
+            second.UpdateCameraState(Vector3.up, -1f);
+
+            Assert.AreEqual(0.75f, secondShot.NormalizedTime, Tolerance);
+        }
+
+        // 同じカメラを 2 つの Timeline のクリップに入れた形（曲のカメラを、親の Timeline でも映すなど）。
+        // 今そのカメラを映している Timeline の時刻で決まる
+        [Test]
+        public void Update_WithCameraInTwoTimelines_UsesTheOneThatShowsIt()
+        {
+            var brain = CreateBrain();
+            var vcam = CreateCamera(out var splineShot);
+            var song = CreateDirector(vcam, 0d, 4d, out var songClip);
+            var master = CreateDirector(vcam, 10d, 2d, out var masterClip);
+
+            song.SetGenericBinding(songClip.GetParentTrack(), brain);
+            master.SetGenericBinding(masterClip.GetParentTrack(), brain);
+
+            Show(song, 1d, brain, vcam);
+
+            Assert.IsTrue(CinemachineCore.IsLive(vcam));
+            Assert.AreEqual(0.25f, splineShot.NormalizedTime, Tolerance);
+
+            song.Stop();
+            Show(master, 11d, brain, vcam);
+
+            Assert.AreEqual(0.5f, splineShot.NormalizedTime, Tolerance);
+
+            master.Stop();
+            Show(song, 3d, brain, vcam);
+
+            Assert.AreEqual(0.75f, splineShot.NormalizedTime, Tolerance);
+        }
+
         [Test]
         public void Update_WithCameraInNoTimeline_UsesManualTime()
         {
@@ -181,6 +258,33 @@ namespace ShotTools.Tests
             return vcam;
         }
 
+        private CinemachineBrain CreateBrain()
+        {
+            var gameObject = new GameObject("Brain");
+
+            _created.Add(gameObject);
+            gameObject.AddComponent<Camera>();
+
+            var brain = gameObject.AddComponent<CinemachineBrain>();
+
+            brain.UpdateMethod = CinemachineBrain.UpdateMethods.ManualUpdate;
+
+            return brain;
+        }
+
+        // director を time 秒にして、その絵を brain に出す
+        private static void Show(
+            PlayableDirector director,
+            double time,
+            CinemachineBrain brain,
+            CinemachineVirtualCameraBase vcam)
+        {
+            director.time = time;
+            director.Evaluate();
+            brain.ManualUpdate();
+            vcam.UpdateCameraState(Vector3.up, -1f);
+        }
+
         // 長さ 10 m のまっすぐなレール。offset は、Spline のオブジェクトの場所
         private SplineContainer CreateRail(Vector3 offset)
         {
@@ -227,6 +331,44 @@ namespace ShotTools.Tests
             director.SetReferenceValue(shot.VirtualCamera.exposedName, vcam);
 
             return director;
+        }
+
+        // sub を、start 秒から duration 秒の Control Track のクリップで動かす親の Timeline
+        private PlayableDirector CreateMaster(PlayableDirector sub, double start, double duration)
+        {
+            var timeline = ScriptableObject.CreateInstance<TimelineAsset>();
+
+            _created.Add(timeline);
+            timeline.CreateTrack<ControlTrack>();
+
+            var gameObject = new GameObject("Master");
+
+            _created.Add(gameObject);
+
+            var master = gameObject.AddComponent<PlayableDirector>();
+
+            master.playableAsset = timeline;
+            AddControlClip(master, sub, start, duration);
+
+            return master;
+        }
+
+        private static void AddControlClip(PlayableDirector master, PlayableDirector sub, double start, double duration)
+        {
+            var timeline = (TimelineAsset)master.playableAsset;
+
+            foreach (var track in timeline.GetOutputTracks())
+            {
+                if (track is not ControlTrack) continue;
+
+                var clip = track.CreateClip<ControlPlayableAsset>();
+                var control = (ControlPlayableAsset)clip.asset;
+
+                clip.start = start;
+                clip.duration = duration;
+                control.sourceGameObject.exposedName = System.Guid.NewGuid().ToString();
+                master.SetReferenceValue(control.sourceGameObject.exposedName, sub.gameObject);
+            }
         }
     }
 }

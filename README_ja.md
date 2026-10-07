@@ -72,7 +72,7 @@ https://github.com/NullClone/ShotTools.git
 
 `Cinemachine Camera` の Extension です。カットの中の時刻（0 = 頭、1 = 終わり）を決め、Spline からマークを読んで、カメラに反映します。レールの上の場所は位置に、見る点は向きに、画角と傾きは Lens に入ります。カメラの Lens の設定そのものは書き換えません。
 
-Spline Shot は Timeline への参照を持ちません。このカメラをクリップに入れている Timeline を、自動で見つけます（Timeline を入れ子にしていても同じです）。1 台のカメラは、1 つの Timeline のクリップだけで使ってください。
+Spline Shot は Timeline への参照を持ちません。このカメラをクリップに入れている Timeline を、自動で見つけます（Timeline を入れ子にしていても同じです）。1 台のカメラを 2 つの Timeline のクリップに入れたときは、今そのカメラを映している Timeline を使います。同じ瞬間に、2 つの Timeline から同じカメラを映すことはできません。
 
 カメラに `Spline Dolly` は要りません。Spline Shot が自分でカメラを Spline の上に置くので、絵は時刻と Spline だけで決まり、止めて動かしたときも再生したときも同じになります。
 

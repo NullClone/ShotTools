@@ -34,11 +34,25 @@ namespace ShotTools
             CinemachineVirtualCameraBase vcam,
             out float time)
         {
-            return TryGetNormalizedTime(director, vcam, out time, out _);
+            return TryMeasure(director, vcam, out time, out _);
+        }
+
+        // isShowing は、director が動いていて、今の時刻が vcam のクリップの中にあるとき true
+        public static bool TryGetNormalizedTime(
+            PlayableDirector director,
+            CinemachineVirtualCameraBase vcam,
+            out float time,
+            out bool isShowing)
+        {
+            var found = TryMeasure(director, vcam, out time, out var distance);
+
+            isShowing = found && distance < 0d;
+
+            return found;
         }
 
         // vcam をクリップに持っている Timeline を、シーンから探す。なければ null。
-        // いくつもあるときは、今の時刻が vcam のクリップにいちばん近いもの
+        // いくつもあるときは、今 vcam を映しているもの。なければ、今の時刻が vcam のクリップにいちばん近いもの
         public static PlayableDirector FindDirector(CinemachineVirtualCameraBase vcam)
         {
             var found = default(PlayableDirector);
@@ -53,7 +67,7 @@ namespace ShotTools
 
             foreach (var director in directors)
             {
-                if (!TryGetNormalizedTime(director, vcam, out _, out var distance) || distance >= nearest) continue;
+                if (!TryMeasure(director, vcam, out _, out var distance) || distance >= nearest) continue;
 
                 found = director;
                 nearest = distance;
@@ -65,8 +79,11 @@ namespace ShotTools
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         private static void Reset() => _cache.Clear();
 
-        // distance は、今の時刻から vcam のクリップまでの秒数（クリップの中なら 0）
-        private static bool TryGetNormalizedTime(
+        // distance は、今の時刻から vcam のクリップまでの秒数（クリップの中なら 0）。
+        // クリップの中で、director が動いているときは -1。
+        // 止まっている Timeline は時刻が頭に戻っていて、たまたまクリップの中になることがあるので、
+        // 動いているものと分ける
+        private static bool TryMeasure(
             PlayableDirector director,
             CinemachineVirtualCameraBase vcam,
             out float time,
@@ -94,6 +111,11 @@ namespace ShotTools
 
                 distance = away;
                 time = clip.Duration > 0d ? Mathf.Clamp01((float)((now - clip.Start) / clip.Duration)) : 0f;
+            }
+
+            if (distance == 0d && director.isActiveAndEnabled && director.playableGraph.IsValid())
+            {
+                distance = -1d;
             }
 
             return distance < double.MaxValue;

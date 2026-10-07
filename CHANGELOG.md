@@ -5,6 +5,12 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 
+## [0.2.1] - 2026-10-07
+
+### Fixed
+- Fixed the time of the shot being wrong when a camera is in the clips of two Timelines. Spline Shot now uses the Timeline that is showing the camera
+
+
 ## [0.2.0] - 2026-10-07
 
 ### Changed
